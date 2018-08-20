@@ -73,7 +73,10 @@ class Player(Screen):
         surface.screen[self.x-1][self.top_y+1] = '>'
 
     def move_left(self,surface):
-        #self.top_y = self.top_y-1
+        surface.screen[self.x][self.top_y-1] = ' ' 
+        surface.screen[self.x-1][self.top_y-2] = ' ' 
+        surface.screen[self.x-1][self.top_y-1] = ' '
+        surface.screen[self.x-1][self.top_y] = ' '
         pass           
 
     def move_right(self,surface):
