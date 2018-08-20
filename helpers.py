@@ -1,6 +1,6 @@
 from os import name
 from os import system
-
+#from main import cleary 
 def clear():
  
     # for windows
@@ -13,10 +13,6 @@ def clear():
  
 
 
-def make_scene(screen,player,board):
-    clear()
-    clear()
-    screen.clear()
-    board.draw(screen)
-    player.draw(screen)
-    screen.draw()
+
+
+    

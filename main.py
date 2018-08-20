@@ -15,11 +15,27 @@ class Screen:
     def __init__(self):
         self.screen_height = terminal_ht
         self.screen_width = terminal_width
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
+        self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype='str')
     
     def clear(self):
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
+        self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype='str')
 
+    def move_right(self):
+        for base in self.screen:
+            for i in range(len(base)):
+                if i == 0:
+                    pass
+                else:
+                    base[i-1] = base[i]
+    
+    def move_left(self):
+        for base in self.screen:
+            for i in range(len(base)):
+                if i == screen.screen_width-1:
+                    pass
+                else:
+                    base[i+1] = base[i]
+    
     def draw(self):
         for base in self.screen:
             for stone in base:
@@ -32,9 +48,13 @@ class Board(Screen):
     def __init__(self):
         Screen.__init__(self)
         self._board_base_char = '#'
+        self._board_bridge_char = '%'
         
     def draw(self,surface):
-        surface.screen[-1:] = self._board_base_char
+        surface.screen[-3:] = self._board_base_char
+
+    def bridge(self,surface):
+        surface.screen[25][screen.screen_width-5:screen.screen_width-1] = self._board_bridge_char
 
     
             
@@ -42,80 +62,83 @@ class Player(Screen):
 
     def __init__(self):
         Screen.__init__(self)
-        self.x = terminal_ht-2
-        self.top_y = 0
-        self.bottom_y = int(terminal_width/2)
+        self.x = terminal_ht-4
+        self.top_y = 25
+        
     
     def draw(self,surface):
-        surface.screen[self.x][self.top_y] = 'x' 
-        surface.screen[self.x][self.top_y+1] = 'x' 
-        surface.screen[self.x][self.bottom_y] = 'x'
-        surface.screen[self.x][self.bottom_y+1] = 'x'
+        surface.screen[self.x][self.top_y] = 'X' 
+        surface.screen[self.x-1][self.top_y-1] = '<' 
+        surface.screen[self.x-1][self.top_y] = 'O'
+        surface.screen[self.x-1][self.top_y+1] = '>'
 
-    def move_left(self):
-        #this has to be worked out for the moment
-        if self.top_y == terminal_width or self.top_y == 0:
-            raise IndexError
-        else:
-            self.top_y = self.top_y - 1
-            self.bottom_y = self.bottom_y - 1
+    def move_left(self,surface):
+        #self.top_y = self.top_y-1
+        pass           
 
-    def move_right(self):
-        #this has to be worked out for the moment
-        if self.top_y >= terminal_width-1  or self.top_y == -1:
-            raise IndexError
-        else:
-            self.top_y = self.top_y + 1
-            self.bottom_y = self.bottom_y + 1       
+    def move_right(self,surface):
+       #self.top_y = self.top_y+1
+       pass
+                  
     
-    def jump(self):
-        self.x = self.x - 1
-    
-    def fall(self,surface):
-        if surface.screen[self.x+1][self.bottom_y] == '#':
+    def jump(self,surface):
+        if surface.screen[self.x-1][self.top_y] == '%':
             pass
         else:
-            self.x = self.x +1
+            self.x = self.x - 2
+    
+    def fall(self,surface):
+        if surface.screen[self.x+1][self.top_y] == '#':
+            pass
+        if surface.screen[self.x+1][self.top_y] == '%':
+            pass        
+        else:
+            self.x = self.x + 1
     
     def notfly(self,surface):
-        if surface.screen[self.x+1][self.bottom_y] == '#':
+        if surface.screen[self.x+1][self.top_y] == '#':
             return True
 
     def topy(self):
         return self.top_y
+    
+    def doublejump(self,surface):
+        if surface.screen[self.x+4][self.top_y] == '#':
+            return True
 
 
 screen = Screen()
 board = Board()
 
 player= Player()
-
+board.bridge(screen)
 helpers.make_scene(screen,player,board)
-start = round(time.time())
+count = 0
 while True:
-    current = round(time.time())
+    helpers.make_scene(screen,player,board)
     if not player.notfly(screen):
-        if (current - start)%2 == 0:
+        if count == 3:
             player.fall(screen)
-            helpers.make_scene(screen,player,board)
-    try:
-        keypress = input.getchar()
-        if keypress == 'd':
-            player.move_right()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'a':
-            player.move_left()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'w':
-            player.jump()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'q':
-            break
-    #This needs to be worked out
-    except IndexError:    
-        if player.topy() == terminal_width -2 :
-            player.move_left()
-        elif player.topy() <= 0:
-            player.move_right()
+            count = 0
+        else:
+            count += 1
         helpers.make_scene(screen,player,board)
-    
+    try:
+        keypress = input.get_input()
+
+        if keypress == 'd':
+            player.move_right(screen)
+            screen.move_right()
+            
+        elif keypress == 'a':
+            player.move_left(screen)
+            screen.move_left()
+            
+        elif keypress == 'w':
+            count = 0
+            player.jump(screen)
+            helpers.make_scene(screen,player,board)
+        elif keypress == 'q':
+            break
+    except:
+        pass
