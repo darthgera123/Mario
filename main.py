@@ -18,29 +18,29 @@ class Screen:
         self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype='str')
     
     def clear(self):
-        self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype='str')
+        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
 
     def move_right(self):
         for base in self.screen:
-            for i in range(len(base)):
-                if i == 0:
-                    pass
-                else:
-                    base[i-1] = base[i]
-    
-    def move_left(self):
-        for base in self.screen:
-            for i in range(len(base)):
+            for i in range(0,len(base)):
                 if i == screen.screen_width-1:
                     pass
                 else:
-                    base[i+1] = base[i]
+                    base[i] = base[i+1]
+    
+    def move_left(self):
+         for base in self.screen:
+            for i in range(len(base)-1,0,-1):
+                if i == len(base):
+                    pass
+                else:
+                    base[i] = base[i-1]
     
     def draw(self):
         for base in self.screen:
-            for stone in base:
+            for stone in base[10:-10]:
                 print(stone, end=" ")
-            print('')
+            print(' ')
 
 
 class Board(Screen):
@@ -54,93 +54,37 @@ class Board(Screen):
         surface.screen[-3:] = self._board_base_char
 
     def bridge(self,surface):
-        surface.screen[25][screen.screen_width-5:screen.screen_width-1] = self._board_bridge_char
+        surface.screen[25][screen.screen_width-15:screen.screen_width-11] = self._board_bridge_char
 
-    
+def make_scene(screen,board):
+    #helpers.clear()
+    #helpers.clear()
+    board.draw(screen)
+    screen.draw()
+    #player.draw(screen)
             
-class Player(Screen):
 
-    def __init__(self):
-        Screen.__init__(self)
-        self.x = terminal_ht-4
-        self.top_y = 25
-        
-    
-    def draw(self,surface):
-        surface.screen[self.x][self.top_y] = 'X' 
-        surface.screen[self.x-1][self.top_y-1] = '<' 
-        surface.screen[self.x-1][self.top_y] = 'O'
-        surface.screen[self.x-1][self.top_y+1] = '>'
-
-    def move_left(self,surface):
-        surface.screen[self.x][self.top_y-1] = ' ' 
-        surface.screen[self.x-1][self.top_y-2] = ' ' 
-        surface.screen[self.x-1][self.top_y-1] = ' '
-        surface.screen[self.x-1][self.top_y] = ' '
-        pass           
-
-    def move_right(self,surface):
-       #self.top_y = self.top_y+1
-       pass
-                  
-    
-    def jump(self,surface):
-        if surface.screen[self.x-1][self.top_y] == '%':
-            pass
-        else:
-            self.x = self.x - 2
-    
-    def fall(self,surface):
-        if surface.screen[self.x+1][self.top_y] == '#':
-            pass
-        if surface.screen[self.x+1][self.top_y] == '%':
-            pass        
-        else:
-            self.x = self.x + 1
-    
-    def notfly(self,surface):
-        if surface.screen[self.x+1][self.top_y] == '#':
-            return True
-
-    def topy(self):
-        return self.top_y
-    
-    def doublejump(self,surface):
-        if surface.screen[self.x+4][self.top_y] == '#':
-            return True
 
 
 screen = Screen()
 board = Board()
 
-player= Player()
+#player= Player()
 board.bridge(screen)
-helpers.make_scene(screen,player,board)
+make_scene(screen,board)
 count = 0
 while True:
-    helpers.make_scene(screen,player,board)
-    if not player.notfly(screen):
-        if count == 3:
-            player.fall(screen)
-            count = 0
-        else:
-            count += 1
-        helpers.make_scene(screen,player,board)
     try:
         keypress = input.get_input()
 
         if keypress == 'd':
-            player.move_right(screen)
             screen.move_right()
-            
+            make_scene(screen,board)   
         elif keypress == 'a':
-            player.move_left(screen)
             screen.move_left()
-            
+            make_scene(screen,board)
         elif keypress == 'w':
             count = 0
-            player.jump(screen)
-            helpers.make_scene(screen,player,board)
         elif keypress == 'q':
             break
     except:
