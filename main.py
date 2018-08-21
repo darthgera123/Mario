@@ -68,8 +68,8 @@ class Board(Screen):
             surface.screen[-3:,46:52] = ' '
     
     def large_pit(self,surface):
-        if np.all(surface.screen[-3:42:44]=='#') and np.all(surface.screen[-3:49:51] =='#'):
-            surface.screen[-3:,46:49] = ' '
+        if np.all(surface.screen[-3:42:44]=='#') and np.all(surface.screen[-3:49:59] =='#'):
+            surface.screen[-3:,46:57] = '^'
     
     def clouds(self,surface,x_max,y_start,y_end):
         x = random.randint(x_max-3,x_max)
@@ -112,8 +112,8 @@ board.pipe(screen,15)
 board.pit(screen)   
 def createObstacle(board,screen):
     board.clouds(screen,8,50,58)
-    options = [board.pipe(screen,54),board.pit(screen),board.bridge(screen,56)]
-    choice = random.randint(0,2)
+    options = [board.pipe(screen,54),board.pit(screen),board.bridge(screen,56),board.large_pit(screen)]
+    choice = random.randint(0,3)
     return options[choice]
 
 make_scene(screen,board)
