@@ -57,8 +57,12 @@ class Player():
             surface.screen[self.x-1][self.y]= ' '
             surface.screen[self.x-1][self.y-1]= ' '
             self.x -=2
-        else:
-            pass
+        if surface.screen[self.x-2][self.y-1] == 'c' and surface.screen[self.x-2][self.y] == 'c':
+            surface.screen[self.x][self.y]= ' '
+            surface.screen[self.x][self.y-1]= ' '
+            surface.screen[self.x-1][self.y]= ' '
+            surface.screen[self.x-1][self.y-1]= ' '
+            self.x -=2
 
     def fall(self,surface):
         if surface.screen[self.x+1][self.y] == '^' and surface.screen[self.x+1][self.y-1] == '^':
