@@ -9,41 +9,10 @@ from colorama import Fore, Back, Style
 import random
 import input
 from constants import terminal_ht, terminal_width
-import helpers
- 
+from helpers import make_scene
+import constants
+from background import Screen 
 colorama.init()
-class Screen:
-
-    def __init__(self):
-        self.screen_height = terminal_ht
-        self.screen_width = terminal_width
-        self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype=np.unicode)
-    
-    def clear(self):
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
-
-    def move_right(self):
-        for base in self.screen:
-            for i in range(0,len(base)):
-                if i == screen.screen_width-1:
-                    pass
-                else:
-                    base[i] = base[i+1]
-    
-    def move_left(self):
-         for base in self.screen:
-            for i in range(len(base)-1,0,-1):
-                if i == len(base):
-                    pass
-                else:
-                    base[i] = base[i-1]
-    
-    def draw(self):
-        for base in self.screen:
-            for stone in base[20:-10]:
-                print(stone, end=" ")
-            print(' ')
-
 
 class Board(Screen):
 
@@ -67,10 +36,6 @@ class Board(Screen):
         if np.all(surface.screen[-3:42:46]=='#') and np.all(surface.screen[-3:49:52] =='#'):
             surface.screen[-3:,46:52] = ' '
     
-    def large_pit(self,surface):
-        if np.all(surface.screen[-3:42:44]=='#') and np.all(surface.screen[-3:49:59] =='#'):
-            surface.screen[-3:,46:57] = '^'
-    
     def clouds(self,surface,x_max,y_start,y_end):
         x = random.randint(x_max-3,x_max)
         y = random.randint(y_start,y_end)
@@ -92,49 +57,131 @@ class Board(Screen):
         #surface.screen[14:17,55:59] = ' '
         pass
 
-def make_scene(screen,board):
-    helpers.clear()
-    helpers.clear()
-    print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
-    screen.draw() 
-            
+class Enemy(Screen):
+
+    def __init__(self,y=45):
+        self.x = 16
+        self.y = y
+        self.state = 1
+
+    def switch(self):
+        if self.state == 0:
+            self.state = 1
+        else:
+            self.state = 0
+
+    def move(self):
+        if self.state == 0:
+            self.y = self.y + 1
+        else :
+            self.y = self.y - 1
+
+    def draw(self,surface):
+        if self.state == 0:
+            surface.screen[self.x][self.y-1] = ' '
+            surface.screen[self.x-1][self.y-1]= ' '
+            surface.screen[self.x][self.y]= 'O'
+            surface.screen[self.x-1][self.y]= '^'
+        elif self.state == 1:
+            surface.screen[self.x][self.y+1] = ' '
+            surface.screen[self.x-1][self.y+1]= ' '
+            surface.screen[self.x][self.y]= 'O'
+            surface.screen[self.x-1][self.y]= '^'
+        elif self.y == -59:
+            pass
+    
+    def clear(self,surface):
+        if self.state == 0:
+            surface.screen[self.x][self.y-2]= ' '
+            surface.screen[self.x-1][self.y-2]= ' '
+        else:
+            surface.screen[self.x][self.y + 2] = ' '
+            surface.screen[self.x-1][self.y + 2] = ' '
+    def obstruct(self,surface):
+        if surface.screen[self.x][self.y+2] != ' ' and self.state == 0:
+            return 1
+        elif surface.screen[self.x][self.y-2] != ' ' and self.state == 1:
+            return 1
+        elif self.y <= -50 :
+            return 1
+        else:
+            return 0
+    def fall(self,surface):
+        if np.any(surface.screen[17:20,self.y:self.y+1] != '#'):
+            if self.x == 19:
+                surface.screen[self.x][self.y]==' '
+                surface.screen[self.x-1][self.y]==' '
+                return 2
+            else:
+                surface.screen[self.x-2][self.y]==' '
+                self.x += 1
+            return 1
+        return 0
+    
+    def retx(self):
+        return self.x
+    
+    def rety(self):
+        return self.y
+
+
 screen = Screen()
 board = Board()
+enemyList = []
+
 def initScreen(screen,board):
     #player to be added
+    enemy = Enemy()
+    enemy2 = Enemy(30)
+    enemy3 = Enemy(40)
+    enemyList.append(enemy)
+    enemyList.append(enemy2)
+    enemyList.append(enemy3)
+    board.pipe(screen,35)
     board.draw(screen)
     for i in range(0,10):
         board.clouds(screen,8,25,39)
 
-initScreen(screen,board)
-board.bridge(screen,30)
-board.pipe(screen,15)
-board.pit(screen)   
+initScreen(screen,board) 
 def createObstacle(board,screen):
     board.clouds(screen,8,50,58)
-    options = [board.pipe(screen,54),board.pit(screen),board.bridge(screen,56),board.large_pit(screen)]
-    choice = random.randint(0,3)
+    options = [board.pipe(screen,54),board.pit(screen),board.bridge(screen,56)]
+    choice = random.randint(0,2)
     return options[choice]
 
-make_scene(screen,board)
+def enemyWork(enemy,screen):
+    if enemy.obstruct(screen):
+        enemy.switch()
+    if enemy.fall(screen) == 0:
+        enemy.move()
+    if enemy.fall(screen) == 2:
+        return
+    enemy.draw(screen)
+def all_enemy(screen,board):
+    for e in enemyList:
+        enemyWork(e,screen)
+        make_scene(e,screen,board)     
+
 count = 0
 iter =0
 while True:
     iter +=1 
     if iter % 5 == 0:
         createObstacle(board,screen)
+
+    all_enemy(screen,board)   
+    
     try:
         keypress = input.get_input()
-
         if keypress == 'd':
-            screen.move_right()
-            make_scene(screen,board)   
+            screen.move_right()  
         elif keypress == 'a':
             screen.move_left()
-            make_scene(screen,board)
         elif keypress == 'w':
             count = 0
         elif keypress == 'q':
             break
+        
     except:
-        pass
+        pass     
+ 
