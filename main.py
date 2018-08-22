@@ -94,15 +94,23 @@ class Player(Screen):
         surface.screen[self.x][self.y] = '0' 
         
         if dir == 0:
-            surface.screen[self.x][self.y-3] = ' '
-            surface.screen[self.x-1][self.y-3] = ' '
-            surface.screen[self.x-1][self.y-2] = ' '
-            surface.screen[self.x][self.y-2] = ' '
+            if surface.screen[self.x][self.y-3] == '0':
+                surface.screen[self.x][self.y-3] = ' '
+            if surface.screen[self.x-1][self.y-2] == '/':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x-1][self.y-2] == '\\':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x][self.y-2] == '0':
+                surface.screen[self.x][self.y-2] = ' '
         elif dir == 1:
-            surface.screen[self.x][self.y+2] = ' '
-            surface.screen[self.x-1][self.y+2] = ' '
-            surface.screen[self.x-1][self.y+1] = ' '
-            surface.screen[self.x][self.y+1] = ' '
+            if surface.screen[self.x][self.y+2] == '0':
+                surface.screen[self.x][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y+2] == '/':
+                surface.screen[self.x-1][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '\\':
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+1] == '0':
+                surface.screen[self.x][self.y+1] = ' '
     
     def jump(self,surface):
         surface.screen[self.x][self.y]= ' '
@@ -113,13 +121,26 @@ class Player(Screen):
 
     def fall(self,surface):
         if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
-            surface.screen[self.x-1][self.y-1] = ' '
-            if surface.screen[self.x-1][self.y-1] == '\\':
+            #The without moving case
+            if surface.screen[self.x-1][self.y-1] == '/':
                 surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y] == '\\':
+                surface.screen[self.x-1][self.y] = ' '
+            #The moving case
             if surface.screen[self.x-1][self.y-2] == '/':
                 surface.screen[self.x-1][self.y-2] = ' '
-            surface.screen[self.x-1][self.y+1] = ' '
-            surface.screen[self.x-1][self.y] = ' '
+            if surface.screen[self.x][self.y-2] == '0':
+                surface.screen[self.x][self.y-2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '\\':
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+1] == '0':
+                surface.screen[self.x][self.y+1] = ' '
+            
+            if surface.screen[self.x-1][self.y+2] == '/':
+                surface.screen[self.x-1][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y-3] == '\\':
+                surface.screen[self.x-1][self.y-3] = ' '
+            
             
             self.x += 1
     
