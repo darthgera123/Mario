@@ -22,10 +22,9 @@ def test(screen):
     screen.draw()
 
 
-def make_scene(enemy,screen,board):
+def make_scene(screen):
     clear()
     clear()
     print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
-    enemy.clear(screen)
     screen.draw()
     
