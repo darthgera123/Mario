@@ -9,53 +9,13 @@ from colorama import Fore, Back, Style
 import random
 import input
 from constants import terminal_ht, terminal_width
-from helpers import make_scene
+from helpers import make_scene, test
 import constants
-from background import Screen 
+import time
+from background import Screen
+from board import Board 
 colorama.init()
 
-class Board(Screen):
-
-    def __init__(self):
-        Screen.__init__(self)
-        self._board_base_char = '#'
-        self._board_bridge_char = '%'
-        
-    def draw(self,surface):
-        surface.screen[-3:] = self._board_base_char
-
-    def bridge(self,surface,start):
-        x = random.randint(0,1)
-        if np.all(surface.screen[12+x:17,start-6:start+6] == ' '):
-            surface.screen[12+x:14,start:start+1] = 'x'
-            surface.screen[12+x:14,start+1:start+2] = '?'
-            surface.screen[12+x:14,start+2:start+3] = 'x' 
-        pass
-    
-    def pit(self,surface):
-        if np.all(surface.screen[-3:42:46]=='#') and np.all(surface.screen[-3:49:52] =='#'):
-            surface.screen[-3:,46:52] = ' '
-    
-    def clouds(self,surface,x_max,y_start,y_end):
-        x = random.randint(x_max-3,x_max)
-        y = random.randint(y_start,y_end)
-        if np.all(surface.screen[x-3:x+1,y-4:y+1] == ' '):
-            surface.screen[x-1][y-4]='('
-            surface.screen[x-2][y-3]='/'
-            surface.screen[x-3][y-2]='-'
-            surface.screen[x-2][y-1]='\\'
-            if surface.screen[x-1][y+1] == ' ':
-                surface.screen[x-1][y]=')'
-            surface.screen[x][y-3:y]='-'
-
-    def pipe(self,surface,y_start):
-        choice = random.randint(0,2)
-        if np.all(surface.screen[13+choice:17,y_start-10:y_start+10]==' '):
-            surface.screen[12+choice:17,y_start:y_start+3]="8"
-
-    def nothing(self,surface):
-        #surface.screen[14:17,55:59] = ' '
-        pass
 
 class Enemy(Screen):
 
@@ -92,11 +52,13 @@ class Enemy(Screen):
     
     def clear(self,surface):
         if self.state == 0:
-            surface.screen[self.x][self.y-2]= ' '
-            surface.screen[self.x-1][self.y-2]= ' '
+            if surface.screen[self.x][self.y-2] == 'O' and surface.screen[self.x-1][self.y-2]=='^':
+                surface.screen[self.x][self.y-2]= ' '
+                surface.screen[self.x-1][self.y-2]= ' '
         else:
-            surface.screen[self.x][self.y + 2] = ' '
-            surface.screen[self.x-1][self.y + 2] = ' '
+            if surface.screen[self.x][self.y+2] == 'O' and surface.screen[self.x-1][self.y+2]=='^':
+                surface.screen[self.x][self.y + 2] = ' '
+                surface.screen[self.x-1][self.y + 2] = ' '
     def obstruct(self,surface):
         if surface.screen[self.x][self.y+2] != ' ' and self.state == 0:
             return 1
@@ -107,14 +69,9 @@ class Enemy(Screen):
         else:
             return 0
     def fall(self,surface):
-        if np.any(surface.screen[17:20,self.y:self.y+1] != '#'):
-            if self.x == 19:
-                surface.screen[self.x][self.y]==' '
-                surface.screen[self.x-1][self.y]==' '
-                return 2
-            else:
-                surface.screen[self.x-2][self.y]==' '
-                self.x += 1
+        if surface.screen[self.x+1][self.y+1] == ' ':
+            surface.screen[self.x][self.y] = ' '
+            surface.screen[self.x-1][self.y] = ' '
             return 1
         return 0
     
@@ -124,19 +81,77 @@ class Enemy(Screen):
     def rety(self):
         return self.y
 
+class Player(Screen):
+    
+    def __init__(self):
+        self.x = 16
+        self.y = 24
+    
+    def draw(self,surface,dir=0):
+        surface.screen[self.x][self.y-1] = '0'
+        surface.screen[self.x-1][self.y-1] = '/'
+        surface.screen[self.x-1][self.y] = '\\'
+        surface.screen[self.x][self.y] = '0' 
+        
+        if dir == 0:
+            surface.screen[self.x][self.y-3] = ' '
+            surface.screen[self.x-1][self.y-3] = ' '
+            surface.screen[self.x-1][self.y-2] = ' '
+            surface.screen[self.x][self.y-2] = ' '
+        elif dir == 1:
+            surface.screen[self.x][self.y+2] = ' '
+            surface.screen[self.x-1][self.y+2] = ' '
+            surface.screen[self.x-1][self.y+1] = ' '
+            surface.screen[self.x][self.y+1] = ' '
+    
+    def jump(self,surface):
+        surface.screen[self.x][self.y]= ' '
+        surface.screen[self.x][self.y-1]= ' '
+        surface.screen[self.x-1][self.y]= ' '
+        surface.screen[self.x-1][self.y-1]= ' '
+        self.x -=2
+
+    def fall(self,surface):
+        if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
+            surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y-1] == '\\':
+                surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y-2] == '/':
+                surface.screen[self.x-1][self.y-2] = ' '
+            surface.screen[self.x-1][self.y+1] = ' '
+            surface.screen[self.x-1][self.y] = ' '
+            
+            self.x += 1
+    
+    def clean(self,surface):
+        surface.screen[self.x-1][self.y] = ' '
+        surface.screen[self.x-1][self.y-1] = ' '
+        surface.screen[self.x][self.y-1] = ' '
+        surface.screen[self.x][self.y] = ' ' 
+   
+    def retx(self):
+        return self.x
+    def rety(self):
+        return self.y
 
 screen = Screen()
 board = Board()
 enemyList = []
+player = Player()
+
+def createEnemy():
+    if len(enemyList) == 0:
+        enemy = Enemy(38)
+        enemy2 = Enemy(30)
+        enemy3 = Enemy(40)
+        enemyList.append(enemy)
+        enemyList.append(enemy2)
+        enemyList.append(enemy3)
+
 
 def initScreen(screen,board):
-    #player to be added
-    enemy = Enemy()
-    enemy2 = Enemy(30)
-    enemy3 = Enemy(40)
-    enemyList.append(enemy)
-    enemyList.append(enemy2)
-    enemyList.append(enemy3)
+    createEnemy()
+    player.draw(screen)
     board.pipe(screen,35)
     board.draw(screen)
     for i in range(0,10):
@@ -154,34 +169,68 @@ def enemyWork(enemy,screen):
         enemy.switch()
     if enemy.fall(screen) == 0:
         enemy.move()
-    if enemy.fall(screen) == 2:
-        return
+    if enemy.fall(screen) == 1:
+        return 1
     enemy.draw(screen)
+
 def all_enemy(screen,board):
     for e in enemyList:
-        enemyWork(e,screen)
-        make_scene(e,screen,board)     
+        if enemyWork(e,screen):
+            screen.screen[e.retx()][e.rety()+1] = ' '
+            screen.screen[e.retx()-1][e.rety()+1] = ' '
+            del(e)
+            
+        else:
+            make_scene(e,screen,board)     
+
+def checkMove(screen,player):
+    x = player.retx()
+    y = player.rety()
+    if screen.screen[x][y+1] == 'O':
+        return 1
+    elif screen.screen[x][y+1] == '8' or screen.screen[x-1][y+1] == 'x' or screen.screen[x][y+1] == 'x':
+        return 2
+    elif screen.screen[x][y-2] == '8' or screen.screen[x-1][y-2] == 'x' or screen.screen[x][y-2] == 'x':
+        return 3
+    elif screen.screen[x-2][y] == '?':
+        screen.screen[x-2][y] = 'x'
+        return 4
 
 count = 0
 iter =0
+dir =0
 while True:
     iter +=1 
     if iter % 5 == 0:
         createObstacle(board,screen)
-
+    test(screen)    
+    if iter %2 == 0:
+        try:
+            player.fall(screen)
+        except:
+            player.clean(screen)
+    player.draw(screen,dir)
+    createEnemy()
     all_enemy(screen,board)   
     
     try:
         keypress = input.get_input()
         if keypress == 'd':
-            screen.move_right()  
+            dir=0
+            move = checkMove(screen,player)
+            if move != 2 and move != 1:
+                screen.move_right()  
         elif keypress == 'a':
-            screen.move_left()
+            dir=1
+            move = checkMove(screen,player)
+            if move != 3 and move!= 1:
+                screen.move_left()
         elif keypress == 'w':
             count = 0
+            player.jump(screen)
         elif keypress == 'q':
             break
         
     except:
         pass     
- 
+print(len(enemyList))

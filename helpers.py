@@ -15,6 +15,13 @@ def clear():
         _ = system('clear')
 
 
+def test(screen):
+    clear()
+    clear()
+    print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
+    screen.draw()
+
+
 def make_scene(enemy,screen,board):
     clear()
     clear()
