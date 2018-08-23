@@ -115,7 +115,7 @@ def make_scene(screen):
 def initScreen(screen,board): 
     
     enemy.draw(screen)
-    board.pipe(screen,40)
+    board.pit(screen)
     board.draw(screen)
     player.draw(screen)
     for i in range(0,10):
