@@ -83,7 +83,29 @@ class Enemy:
         elif surface.screen[self.x][self.y-2] == '8'  and self.state == 1:
             return 1
         return 0
-    
+    def fall (self,surface):
+        if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
+            #The without moving case
+            if surface.screen[self.x-1][self.y-1] == '!':
+                surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y] == '!':
+                surface.screen[self.x-1][self.y] = ' '
+            #The moving case
+            if surface.screen[self.x-1][self.y-2] == 'O':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x][self.y-2] == 'O':
+                surface.screen[self.x][self.y-2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '<':
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+1] == 'O':
+                surface.screen[self.x][self.y+1] = ' '
+            
+            if surface.screen[self.x-1][self.y] == '!':
+                surface.screen[self.x-1][self.y] = ' '
+            if surface.screen[self.x-1][self.y-1] == '!':
+                surface.screen[self.x-1][self.y-1] = ' '
+            self.x += 1
+            return 1
     
     
     def retx(self):
@@ -184,6 +206,8 @@ def moveEnemy(screen):
     for e in enemyList:
         if e.obstruct(screen):
             e.switch()
+        if e.fall(screen):
+            continue
         e.move(screen)
         e.draw(screen)
         e.clear(screen)
