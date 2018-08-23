@@ -22,11 +22,14 @@ class Enemy:
 
     def __init__(self,y=45):
         self.x = 16
-        self.y = 35
-        self.state = 1
+        self.y = 29
+        self.state = 0
     
     def switch(self):
-        self.state = 0 if self.state == 1 else 0
+        if self.state ==0:
+            self.state =1
+        else:
+            self.state =0
     
     def draw(self,surface):
         if np.all(surface.screen[self.x-1:self.x,self.y-1:self.y] == ' '):
@@ -37,12 +40,18 @@ class Enemy:
     
     def move(self,surface):
         if self.state == 0:
-            self.y = self.y + 2
+            if self.y <=55:
+                self.y = self.y + 2
+            else:
+                pass
         else :
-            self.y = self.y - 1
+            if self.y>=6:
+                self.y = self.y - 1
+            else:
+                pass
     
     def clear(self,surface):
-        if self.state == 1:    
+        if self.state == 1 and self.y <=55:    
             if surface.screen[self.x-1][self.y+2] == '!':
                 surface.screen[self.x-1][self.y+2] = ' '
             if surface.screen[self.x-1][self.y+1] == '!':   
@@ -51,7 +60,7 @@ class Enemy:
                 surface.screen[self.x][self.y+2] = ' '
             if surface.screen[self.x][self.y+1] == 'O':
                 surface.screen[self.x][self.y+1] = ' '
-        if self.state == 0:    
+        if self.state == 0 and self.y >= 6:    
             if surface.screen[self.x-1][self.y-3] == '!':
                 surface.screen[self.x-1][self.y-3] = ' '
             if surface.screen[self.x-1][self.y-4] == '!':
@@ -64,6 +73,18 @@ class Enemy:
                 surface.screen[self.x][self.y-2] = ' '
             if surface.screen[self.x][self.y-4] == 'O':
                 surface.screen[self.x][self.y-4] = ' '
+    
+    def obstruct(self,surface):
+        if (surface.screen[self.x][self.y+2] == '8' or surface.screen[self.x][self.y+1] == '8') and self.state == 0 :
+            if self.y <= 55:
+                return 1
+            else:
+                return 0
+        elif surface.screen[self.x][self.y-2] == '8'  and self.state == 1:
+            return 1
+        return 0
+    
+    
     
     def retx(self):
         return self.x
@@ -92,10 +113,11 @@ def make_scene(screen):
     screen.draw()
 
 def initScreen(screen,board): 
-    player.draw(screen)
-    board.pipe(screen,36)
-    board.draw(screen)
+    
     enemy.draw(screen)
+    board.pipe(screen,40)
+    board.draw(screen)
+    player.draw(screen)
     for i in range(0,10):
         board.clouds(screen,8,25,39)
 
@@ -160,6 +182,8 @@ def killEnemy(screen,player):
 
 def moveEnemy(screen):
     for e in enemyList:
+        if e.obstruct(screen):
+            e.switch()
         e.move(screen)
         e.draw(screen)
         e.clear(screen)
@@ -237,3 +261,4 @@ if health == 0:
     print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+" Better luck next time"+Style.RESET_ALL)
 else :
      print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)
+print(enemyList[0].state)
