@@ -22,7 +22,7 @@ class Enemy:
 
     def __init__(self,y=45):
         self.x = 16
-        self.y = 50
+        self.y = 35
         self.state = 1
     
     def switch(self):
@@ -37,7 +37,7 @@ class Enemy:
     
     def move(self,surface):
         if self.state == 0:
-            self.y = self.y + 1
+            self.y = self.y + 2
         else :
             self.y = self.y - 1
     
@@ -52,15 +52,18 @@ class Enemy:
             if surface.screen[self.x][self.y+1] == 'O':
                 surface.screen[self.x][self.y+1] = ' '
         if self.state == 0:    
-            if surface.screen[self.x-1][self.y-1] == '!':
-                surface.screen[self.x-1][self.y-1] = ' '
-            if surface.screen[self.x-1][self.y] == '!':   
-                surface.screen[self.x-1][self.y] = ' '
-            if surface.screen[self.x][self.y-1] == 'O':  
-                surface.screen[self.x][self.y-1] = ' '
-            if surface.screen[self.x][self.y] == 'O':
-                surface.screen[self.x][self.y-1] = ' '
-        
+            if surface.screen[self.x-1][self.y-3] == '!':
+                surface.screen[self.x-1][self.y-3] = ' '
+            if surface.screen[self.x-1][self.y-4] == '!':
+                surface.screen[self.x-1][self.y-4] = ' '
+            if surface.screen[self.x-1][self.y-2] == '!':   
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x][self.y-3] == 'O':  
+                surface.screen[self.x][self.y-3] = ' '
+            if surface.screen[self.x][self.y-2] == 'O':
+                surface.screen[self.x][self.y-2] = ' '
+            if surface.screen[self.x][self.y-4] == 'O':
+                surface.screen[self.x][self.y-4] = ' '
     
     def retx(self):
         return self.x
@@ -194,18 +197,15 @@ while True:
     if eat_coins(screen,player):
         count += 1
         coin_count -= 1 
-    moveEnemy(screen)
-    player.draw(screen,dir)
-    make_scene(screen) 
-        
-    
-    
     
     if killPlayer(screen,player):
         player = restart(screen,player)
         health -= 1 
         if health == 0:
-                break 
+                break
+    player.draw(screen,dir)
+    moveEnemy(screen)
+    make_scene(screen)   
     try:
         keypress = input.get_input()
         if keypress == 'd':
@@ -230,7 +230,8 @@ while True:
             break
         
     except:
-        pass     
+        pass
+            
 
 if health == 0:
     print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+" Better luck next time"+Style.RESET_ALL)
