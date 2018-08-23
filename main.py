@@ -22,7 +22,7 @@ class Enemy:
 
     def __init__(self,y=45):
         self.x = 16
-        self.y = 45
+        self.y = 50
         self.state = 1
     
     def switch(self):
@@ -34,6 +34,34 @@ class Enemy:
             surface.screen[self.x-1][self.y] = '!'
             surface.screen[self.x][self.y-1] = 'O'
             surface.screen[self.x][self.y] = 'O'
+    
+    def move(self,surface):
+        if self.state == 0:
+            self.y = self.y + 1
+        else :
+            self.y = self.y - 1
+    
+    def clear(self,surface):
+        if self.state == 1:    
+            if surface.screen[self.x-1][self.y+2] == '!':
+                surface.screen[self.x-1][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '!':   
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+2] == 'O':  
+                surface.screen[self.x][self.y+2] = ' '
+            if surface.screen[self.x][self.y+1] == 'O':
+                surface.screen[self.x][self.y+1] = ' '
+        if self.state == 0:    
+            if surface.screen[self.x-1][self.y-1] == '!':
+                surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y] == '!':   
+                surface.screen[self.x-1][self.y] = ' '
+            if surface.screen[self.x][self.y-1] == 'O':  
+                surface.screen[self.x][self.y-1] = ' '
+            if surface.screen[self.x][self.y] == 'O':
+                surface.screen[self.x][self.y-1] = ' '
+        
+    
     def retx(self):
         return self.x
     
@@ -62,7 +90,7 @@ def make_scene(screen):
 
 def initScreen(screen,board): 
     player.draw(screen)
-    board.bridge(screen,35)
+    board.pipe(screen,36)
     board.draw(screen)
     enemy.draw(screen)
     for i in range(0,10):
@@ -107,7 +135,7 @@ def killPlayer(screen,player):
 def killEnemy(screen,player):
     x = player.retx()
     y = player.rety()
-    if player.fall(screen):
+    if player.fall(screen) and len(enemyList)>0:
         if screen.screen[x+1][y-1] == ' ' and screen.screen[x+1][y] == '!':
             screen.screen[x+1][y] = ' '  
             screen.screen[x+1][y+1] = ' '
@@ -127,6 +155,11 @@ def killEnemy(screen,player):
         return 1  
     return 0
 
+def moveEnemy(screen):
+    for e in enemyList:
+        e.move(screen)
+        e.draw(screen)
+        e.clear(screen)
 
 coin_count = int(0)
 
@@ -145,9 +178,9 @@ while True:
             speed -=5
         else:
             pass    
-    if iter % speed == 0:
-        make_enemy(screen)
-    coin_count = make_coins(screen,38,coin_count)     
+    """ if iter % speed == 0:
+        make_enemy(screen) """
+    #coin_count = make_coins(screen,38,coin_count)     
     if iter %2 == 0:
         if player.retx() + 1 == 20:
             player = restart(screen,player)
@@ -161,7 +194,7 @@ while True:
     if eat_coins(screen,player):
         count += 1
         coin_count -= 1 
-    
+    moveEnemy(screen)
     player.draw(screen,dir)
     make_scene(screen) 
         
