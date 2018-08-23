@@ -13,6 +13,7 @@ from helpers import  make_coins,eat_coins,clear,restart
 import constants
 import time
 from player import Player
+from enemy import Enemy
 from background import Screen
 from board import Board 
 colorama.init()
