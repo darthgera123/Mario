@@ -1,5 +1,8 @@
 from constants import terminal_ht, terminal_width
 import numpy as np
+import colorama
+from colorama import Fore, Back, Style
+colorama.init()
 
 class Screen:
 
@@ -30,5 +33,21 @@ class Screen:
     def draw(self):
         for base in self.screen:
             for stone in base[20:45]:
-                print(stone, end=" ")
+                if stone == '#':
+                    print(Fore.LIGHTGREEN_EX+stone+Style.RESET_ALL, end=" ")
+                elif stone == '$':
+                    print(Fore.YELLOW+stone+Style.RESET_ALL, end=" ")
+                elif stone == '8':
+                    print(Fore.LIGHTRED_EX+stone+Style.RESET_ALL, end=" ")
+                elif stone == 'x':
+                    print(Fore.LIGHTCYAN_EX+stone+Style.RESET_ALL, end=" ")
+                elif stone == '?':
+                    print(Fore.LIGHTMAGENTA_EX+stone+Style.RESET_ALL, end=" ")
+                elif stone == '>' or stone == '<':
+                    print(Fore.RED+stone+Style.RESET_ALL, end=" ")
+                elif stone == '0':
+                    print(Fore.BLUE+stone+Style.RESET_ALL, end=" ")
+                
+                else:
+                    print(stone,end = " ")
             print(' ')

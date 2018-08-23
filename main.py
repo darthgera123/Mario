@@ -12,106 +12,37 @@ from constants import terminal_ht, terminal_width
 from helpers import  make_coins,eat_coins,clear
 import constants
 import time
+from player import Player
 from background import Screen
 from board import Board 
 colorama.init()
 
 
+class Enemy:
+
+    def __init__(self):
+        self.x = 16
+        self.y = 27
+        self.state = 1
+    
+    def switch(self):
+        self.state = 0 if self.state == 1 else 0
+    
+    def draw(self,surface):
+        if np.all(surface.screen[self.x-1:self.x,self.y-1:self.y] == ' '):
+            surface.screen[self.x-1][self.y-1] = '!'
+            surface.screen[self.x-1][self.y] = '!'
+            surface.screen[self.x][self.y-1] = 'O'
+            surface.screen[self.x][self.y] = 'O'
 
 
-class Player():
-    
-    def __init__(self,x):
-        self.x = x
-        self.y = 24
-    
-    def draw(self,surface,dir=0):
-        surface.screen[self.x][self.y-1] = '0'
-        surface.screen[self.x-1][self.y-1] = '/'
-        surface.screen[self.x-1][self.y] = '\\'
-        surface.screen[self.x][self.y] = '0' 
-        
-        if dir == 0:
-            if surface.screen[self.x][self.y-3] == '0':
-                surface.screen[self.x][self.y-3] = ' '
-            if surface.screen[self.x-1][self.y-2] == '/':
-                surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x-1][self.y-2] == '\\':
-                surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-2] == '0':
-                surface.screen[self.x][self.y-2] = ' '
-        elif dir == 1:
-            if surface.screen[self.x][self.y+2] == '0':
-                surface.screen[self.x][self.y+2] = ' '
-            if surface.screen[self.x-1][self.y+2] == '/':
-                surface.screen[self.x-1][self.y+2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '\\':
-                surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+1] == '0':
-                surface.screen[self.x][self.y+1] = ' '
-    
-    def jump(self,surface):
-        if surface.screen[self.x-2][self.y-1] == ' ' and surface.screen[self.x-2][self.y] == ' ':
-            surface.screen[self.x][self.y]= ' '
-            surface.screen[self.x][self.y-1]= ' '
-            surface.screen[self.x-1][self.y]= ' '
-            surface.screen[self.x-1][self.y-1]= ' '
-            if surface.screen[self.x+1][self.y-1] == '?' or surface.screen[self.x+1][self.y] == '?':
-                self.x -=5
-            if surface.screen[self.x+1][self.y-1] == '#' or surface.screen[self.x+1][self.y] == '#':
-                self.x -=3
-            if surface.screen[self.x+1][self.y-1] == ' ' or surface.screen[self.x+1][self.y] == ' ':
-                self.x -=1
-            if surface.screen[self.x+1][self.y-1] == 'x' or surface.screen[self.x+1][self.y] == 'x':
-                self.x -=2
-            if surface.screen[self.x+1][self.y-1] == '8' or surface.screen[self.x+1][self.y] == '8':
-                self.x -=4
-        else:
-            pass
 
-    def fall(self,surface):
-        if surface.screen[self.x+1][self.y] == '^' and surface.screen[self.x+1][self.y-1] == '^':
-            return 1
-        if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
-            #The without moving case
-            if surface.screen[self.x-1][self.y-1] == '/':
-                surface.screen[self.x-1][self.y-1] = ' '
-            if surface.screen[self.x-1][self.y] == '\\':
-                surface.screen[self.x-1][self.y] = ' '
-            #The moving case
-            if surface.screen[self.x-1][self.y-2] == '/':
-                surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-2] == '0':
-                surface.screen[self.x][self.y-2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '\\':
-                surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+1] == '0':
-                surface.screen[self.x][self.y+1] = ' '
-            
-            if surface.screen[self.x-1][self.y] == '/':
-                surface.screen[self.x-1][self.y] = ' '
-            if surface.screen[self.x-1][self.y-1] == '\\':
-                surface.screen[self.x-1][self.y-1] = ' '
-            self.x += 1
-            return 1
-    
-    def clean(self,surface):
-        surface.screen[self.x-1][self.y] = ' '
-        surface.screen[self.x-1][self.y-1] = ' '
-        surface.screen[self.x][self.y-1] = ' '
-        surface.screen[self.x][self.y] = ' ' 
-   
-    def retx(self):
-        return self.x
-    def rety(self):
-        return self.y
-    def setx(self,x):
-        self.x = x
-    def sety(self,y):
-        self.y = y
+
+
 
 screen = Screen()
 board = Board()
+enemy =  Enemy()
 enemyList = []
 player = Player(16)
 health = 3
@@ -126,6 +57,7 @@ def make_scene(screen):
 
 def initScreen(screen,board): 
     player.draw(screen)
+    enemy.draw(screen)
     board.bridge(screen,35)
     board.draw(screen)
     for i in range(0,10):
@@ -142,9 +74,7 @@ def createObstacle(board,screen):
 def checkMove(screen,player):
     x = player.retx()
     y = player.rety()
-    if screen.screen[x][y+1] == 'O':
-        return 1
-    elif screen.screen[x][y+1] == '8' or screen.screen[x][y+1] == 'x' or screen.screen[x][y+1] == 'x' or screen.screen[x-1][y+1] == 'x' or screen.screen[x-1][y+1] == 'x'\
+    if screen.screen[x][y+1] == '8' or screen.screen[x][y+1] == 'x' or screen.screen[x][y+1] == 'x' or screen.screen[x-1][y+1] == 'x' or screen.screen[x-1][y+1] == 'x'\
             or screen.screen[x][y+1] == '#':
         return 2
     elif screen.screen[x][y-2] == '8' or screen.screen[x][y-2] == 'x' or screen.screen[x][y-2] == 'x' or screen.screen[x-1][y-2] == 'x' or screen.screen[x-1][y-2] == 'x' \
@@ -155,18 +85,20 @@ def checkMove(screen,player):
         return 4
 
 def restart(screen,player):
-    x = player.retx()
-    y = player.rety()
-    screen.screen[x][y] = ' '
-    screen.screen[x-1][y] = ' '
-    screen.screen[x][y-1] = ' '
-    screen.screen[x-1][y-1] = ' '
-    
+    player.clean(screen)
     del(player)
     player = Player(14)
     return player
 
-
+def killPlayer(screen,player):
+    x = player.retx()
+    y = player.rety()
+    if screen.screen[x][y+1] == 'O':
+        return 1
+    if screen.screen[x][y] == 'O':
+        return 1
+    return 0
+    
 
 coin_count = int(0)
 
@@ -184,12 +116,17 @@ while True:
         if player.retx() + 1 == 20:
             player = restart(screen,player)
             health -= 1
-            
+            if health == 0:
+                break
+
         player.fall(screen)
     if eat_coins(screen,player):
         count += 1
         coin_count -= 1 
-    player.draw(screen,dir)      
+    if killPlayer(screen,player):
+        player = restart(screen,player)
+        health -= 1
+    player.draw(screen,dir) 
     make_scene(screen)   
     try:
         keypress = input.get_input()
@@ -214,4 +151,7 @@ while True:
         
     except:
         pass     
-print(count*10)
+if health == 0:
+    print(Fore.YELLOW+"   Score             "+str(count*10)+" Better luck next time"+Style.RESET_ALL)
+else :
+     print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10)+Style.RESET_ALL)

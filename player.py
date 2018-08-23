@@ -1,51 +1,90 @@
-class Player(Screen):
-
-    def __init__(self):
-        Screen.__init__(self)
-        self.x = terminal_ht-4
-        self.top_y = 25
-        
+class Player():
     
-    def draw(self,surface):
-        surface.screen[self.x][self.top_y] = 'X' 
-        surface.screen[self.x-1][self.top_y-1] = '<' 
-        surface.screen[self.x-1][self.top_y] = 'O'
-        surface.screen[self.x-1][self.top_y+1] = '>'
-
-    def move_left(self,surface):
-        surface.screen[self.x][self.top_y-1] = ' ' 
-        surface.screen[self.x-1][self.top_y-2] = ' ' 
-        surface.screen[self.x-1][self.top_y-1] = ' '
-        surface.screen[self.x-1][self.top_y] = ' '
+    def __init__(self,x):
+        self.x = x
+        self.y = 24
+    
+    def draw(self,surface,dir=0):
+        surface.screen[self.x][self.y-1] = '0'
+        surface.screen[self.x-1][self.y-1] = '>'
+        surface.screen[self.x-1][self.y] = '<'
+        surface.screen[self.x][self.y] = '0' 
         
-    def move_right(self,surface):
-        surface.screen[self.x][self.top_y-1] = ' ' 
-        surface.screen[self.x-1][self.top_y-2] = ' ' 
-        surface.screen[self.x-1][self.top_y-1] = ' '
-        surface.screen[self.x-1][self.top_y] = ' '
-                  
+        if dir == 0:
+            if surface.screen[self.x][self.y-3] == '0':
+                surface.screen[self.x][self.y-3] = ' '
+            if surface.screen[self.x-1][self.y-2] == '>':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x-1][self.y-2] == '<':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x][self.y-2] == '0':
+                surface.screen[self.x][self.y-2] = ' '
+        elif dir == 1:
+            if surface.screen[self.x][self.y+2] == '0':
+                surface.screen[self.x][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y+2] == '/':
+                surface.screen[self.x-1][self.y+2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '<':
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+1] == '0':
+                surface.screen[self.x][self.y+1] = ' '
     
     def jump(self,surface):
-        if surface.screen[self.x-1][self.top_y] == '%':
-            pass
+        if surface.screen[self.x-2][self.y-1] == ' ' and surface.screen[self.x-2][self.y] == ' ':
+            surface.screen[self.x][self.y]= ' '
+            surface.screen[self.x][self.y-1]= ' '
+            surface.screen[self.x-1][self.y]= ' '
+            surface.screen[self.x-1][self.y-1]= ' '
+            if surface.screen[self.x+1][self.y-1] == '?' or surface.screen[self.x+1][self.y] == '?':
+                self.x -=5
+            if surface.screen[self.x+1][self.y-1] == '#' or surface.screen[self.x+1][self.y] == '#':
+                self.x -=3
+            if surface.screen[self.x+1][self.y-1] == ' ' or surface.screen[self.x+1][self.y] == ' ':
+                self.x -=1
+            if surface.screen[self.x+1][self.y-1] == 'x' or surface.screen[self.x+1][self.y] == 'x':
+                self.x -=2
+            if surface.screen[self.x+1][self.y-1] == '8' or surface.screen[self.x+1][self.y] == '8':
+                self.x -=4
         else:
-            self.x = self.x - 2
-    
-    def fall(self,surface):
-        if surface.screen[self.x+1][self.top_y] == '#':
             pass
-        if surface.screen[self.x+1][self.top_y] == '%':
-            pass        
-        else:
-            self.x = self.x + 1
-    
-    def notfly(self,surface):
-        if surface.screen[self.x+1][self.top_y] == '#':
-            return True
 
-    def topy(self):
-        return self.top_y
+    def fall(self,surface):
+        if surface.screen[self.x+1][self.y] == '^' and surface.screen[self.x+1][self.y-1] == '^':
+            return 1
+        if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
+            #The without moving case
+            if surface.screen[self.x-1][self.y-1] == '>':
+                surface.screen[self.x-1][self.y-1] = ' '
+            if surface.screen[self.x-1][self.y] == '<':
+                surface.screen[self.x-1][self.y] = ' '
+            #The moving case
+            if surface.screen[self.x-1][self.y-2] == '>':
+                surface.screen[self.x-1][self.y-2] = ' '
+            if surface.screen[self.x][self.y-2] == '0':
+                surface.screen[self.x][self.y-2] = ' '
+            if surface.screen[self.x-1][self.y+1] == '<':
+                surface.screen[self.x-1][self.y+1] = ' '
+            if surface.screen[self.x][self.y+1] == '0':
+                surface.screen[self.x][self.y+1] = ' '
+            
+            if surface.screen[self.x-1][self.y] == '>':
+                surface.screen[self.x-1][self.y] = ' '
+            if surface.screen[self.x-1][self.y-1] == '<':
+                surface.screen[self.x-1][self.y-1] = ' '
+            self.x += 1
+            return 1
     
-    def doublejump(self,surface):
-        if surface.screen[self.x+4][self.top_y] == '#':
-            return True
+    def clean(self,surface):
+        surface.screen[self.x-1][self.y] = ' '
+        surface.screen[self.x-1][self.y-1] = ' '
+        surface.screen[self.x][self.y-1] = ' '
+        surface.screen[self.x][self.y] = ' ' 
+   
+    def retx(self):
+        return self.x
+    def rety(self):
+        return self.y
+    def setx(self,x):
+        self.x = x
+    def sety(self,y):
+        self.y = y
