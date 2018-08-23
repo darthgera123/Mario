@@ -22,7 +22,7 @@ class Enemy:
 
     def __init__(self):
         self.x = 16
-        self.y = 27
+        self.y = 28
         self.state = 1
     
     def switch(self):
@@ -86,18 +86,24 @@ def checkMove(screen,player):
 
 def restart(screen,player):
     player.clean(screen)
+    y = player.rety()
     del(player)
-    player = Player(14)
+    
+    player = Player(14,y-1)
     return player
 
 def killPlayer(screen,player):
     x = player.retx()
     y = player.rety()
-    if screen.screen[x][y+1] == 'O':
+    if screen.screen[x][y+1] == 'O' or screen.screen[x][y+1] == '!':
         return 1
-    if screen.screen[x][y] == 'O':
+    if screen.screen[x][y-2] == 'O' or screen.screen[x][y-2] == '!':
         return 1
     return 0
+
+def killEnemy(screen,player):
+    x = player.retx()
+    y = player.rety()
     
 
 coin_count = int(0)
@@ -123,11 +129,16 @@ while True:
     if eat_coins(screen,player):
         count += 1
         coin_count -= 1 
+    if player.fall(screen):
+        break
+    player.draw(screen,dir) 
+    make_scene(screen) 
+    
     if killPlayer(screen,player):
         player = restart(screen,player)
-        health -= 1
-    player.draw(screen,dir) 
-    make_scene(screen)   
+        health -= 1 
+        if health == 0:
+                break 
     try:
         keypress = input.get_input()
         if keypress == 'd':

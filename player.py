@@ -1,8 +1,8 @@
 class Player():
     
-    def __init__(self,x):
+    def __init__(self,x,y=24):
         self.x = x
-        self.y = 24
+        self.y = y
     
     def draw(self,surface,dir=0):
         surface.screen[self.x][self.y-1] = '0'
@@ -49,7 +49,7 @@ class Player():
             pass
 
     def fall(self,surface):
-        if surface.screen[self.x+1][self.y] == '^' and surface.screen[self.x+1][self.y-1] == '^':
+        if surface.screen[self.x+1][self.y] == '!' and surface.screen[self.x+1][self.y-1] == '!':
             return 1
         if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
             #The without moving case
@@ -72,7 +72,7 @@ class Player():
             if surface.screen[self.x-1][self.y-1] == '<':
                 surface.screen[self.x-1][self.y-1] = ' '
             self.x += 1
-            return 1
+            return 0
     
     def clean(self,surface):
         surface.screen[self.x-1][self.y] = ' '
