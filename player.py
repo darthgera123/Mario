@@ -1,32 +1,36 @@
 class Player():
     
-    def __init__(self,x,y=26):
+    def __init__(self,x=15,y=26):
         self.x = x
         self.y = y
+        self._topl_char = '>'
+        self._topr_char = '<'
+        self._bottom_char = '0'
+        
     
     def draw(self,surface,dir=0):
-        surface.screen[self.x][self.y-1] = '0'
-        surface.screen[self.x-1][self.y-1] = '>'
-        surface.screen[self.x-1][self.y] = '<'
-        surface.screen[self.x][self.y] = '0' 
+        surface.screen[self.x][self.y-1] = self._bottom_char
+        surface.screen[self.x-1][self.y-1] = self._topl_char
+        surface.screen[self.x-1][self.y] = self._topr_char
+        surface.screen[self.x][self.y] = self._bottom_char 
         
         if dir == 0:
-            if surface.screen[self.x][self.y-3] == '0':
+            if surface.screen[self.x][self.y-3] == self._bottom_char:
                 surface.screen[self.x][self.y-3] = ' '
-            if surface.screen[self.x-1][self.y-2] == '>':
+            if surface.screen[self.x-1][self.y-2] == self._topl_char:
                 surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x-1][self.y-2] == '<':
+            if surface.screen[self.x-1][self.y-2] == self._topr_char:
                 surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-2] == '0':
+            if surface.screen[self.x][self.y-2] == self._bottom_char:
                 surface.screen[self.x][self.y-2] = ' '
         elif dir == 1:
-            if surface.screen[self.x][self.y+2] == '0':
+            if surface.screen[self.x][self.y+2] == self._bottom_char:
                 surface.screen[self.x][self.y+2] = ' '
             if surface.screen[self.x-1][self.y+2] == '/':
                 surface.screen[self.x-1][self.y+2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '<':
+            if surface.screen[self.x-1][self.y+1] == self._topr_char:
                 surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+1] == '0':
+            if surface.screen[self.x][self.y+1] == self._bottom_char:
                 surface.screen[self.x][self.y+1] = ' '
     
     def jump(self,surface):
@@ -56,23 +60,23 @@ class Player():
             return 1
         if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
             #The without moving case
-            if surface.screen[self.x-1][self.y-1] == '>':
+            if surface.screen[self.x-1][self.y-1] == self._topl_char:
                 surface.screen[self.x-1][self.y-1] = ' '
-            if surface.screen[self.x-1][self.y] == '<':
+            if surface.screen[self.x-1][self.y] == self._topr_char:
                 surface.screen[self.x-1][self.y] = ' '
             #The moving case
-            if surface.screen[self.x-1][self.y-2] == '>':
+            if surface.screen[self.x-1][self.y-2] == self._topl_char:
                 surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-2] == '0':
+            if surface.screen[self.x][self.y-2] == self._bottom_char:
                 surface.screen[self.x][self.y-2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '<':
+            if surface.screen[self.x-1][self.y+1] == self._topr_char:
                 surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+1] == '0':
+            if surface.screen[self.x][self.y+1] == self._bottom_char:
                 surface.screen[self.x][self.y+1] = ' '
             
-            if surface.screen[self.x-1][self.y] == '>':
+            if surface.screen[self.x-1][self.y] == self._topl_char:
                 surface.screen[self.x-1][self.y] = ' '
-            if surface.screen[self.x-1][self.y-1] == '<':
+            if surface.screen[self.x-1][self.y-1] == self._topr_char:
                 surface.screen[self.x-1][self.y-1] = ' '
             self.x += 1
             return 0
@@ -87,7 +91,3 @@ class Player():
         return self.x
     def rety(self):
         return self.y
-    def setx(self,x):
-        self.x = x
-    def sety(self,y):
-        self.y = y

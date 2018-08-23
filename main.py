@@ -17,107 +17,6 @@ from background import Screen
 from board import Board 
 colorama.init()
 
-
-class Enemy:
-
-    def __init__(self,y=45):
-        self.x = 16
-        self.y = 29
-        self.state = 0
-    
-    def switch(self):
-        if self.state ==0:
-            self.state =1
-        else:
-            self.state =0
-    
-    def draw(self,surface):
-        if np.all(surface.screen[self.x-1:self.x,self.y-1:self.y] == ' '):
-            surface.screen[self.x-1][self.y-1] = '!'
-            surface.screen[self.x-1][self.y] = '!'
-            surface.screen[self.x][self.y-1] = 'O'
-            surface.screen[self.x][self.y] = 'O'
-    
-    def move(self,surface):
-        if self.state == 0:
-            if self.y <=55:
-                self.y = self.y + 2
-            else:
-                pass
-        else :
-            if self.y>=6:
-                self.y = self.y - 1
-            else:
-                pass
-    
-    def clear(self,surface):
-        if self.state == 1 and self.y <=55:    
-            if surface.screen[self.x-1][self.y+2] == '!':
-                surface.screen[self.x-1][self.y+2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '!':   
-                surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+2] == 'O':  
-                surface.screen[self.x][self.y+2] = ' '
-            if surface.screen[self.x][self.y+1] == 'O':
-                surface.screen[self.x][self.y+1] = ' '
-        if self.state == 0 and self.y >= 6:    
-            if surface.screen[self.x-1][self.y-3] == '!':
-                surface.screen[self.x-1][self.y-3] = ' '
-            if surface.screen[self.x-1][self.y-4] == '!':
-                surface.screen[self.x-1][self.y-4] = ' '
-            if surface.screen[self.x-1][self.y-2] == '!':   
-                surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-3] == 'O':  
-                surface.screen[self.x][self.y-3] = ' '
-            if surface.screen[self.x][self.y-2] == 'O':
-                surface.screen[self.x][self.y-2] = ' '
-            if surface.screen[self.x][self.y-4] == 'O':
-                surface.screen[self.x][self.y-4] = ' '
-    
-    def obstruct(self,surface):
-        if (surface.screen[self.x][self.y+2] == '8' or surface.screen[self.x][self.y+1] == '8') and self.state == 0 :
-            if self.y <= 55:
-                return 1
-            else:
-                return 0
-        elif surface.screen[self.x][self.y-2] == '8'  and self.state == 1:
-            return 1
-        return 0
-    def fall (self,surface):
-        if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
-            #The without moving case
-            if surface.screen[self.x-1][self.y-1] == '!':
-                surface.screen[self.x-1][self.y-1] = ' '
-            if surface.screen[self.x-1][self.y] == '!':
-                surface.screen[self.x-1][self.y] = ' '
-            #The moving case
-            if surface.screen[self.x-1][self.y-2] == 'O':
-                surface.screen[self.x-1][self.y-2] = ' '
-            if surface.screen[self.x][self.y-2] == 'O':
-                surface.screen[self.x][self.y-2] = ' '
-            if surface.screen[self.x-1][self.y+1] == '<':
-                surface.screen[self.x-1][self.y+1] = ' '
-            if surface.screen[self.x][self.y+1] == 'O':
-                surface.screen[self.x][self.y+1] = ' '
-            
-            if surface.screen[self.x-1][self.y] == '!':
-                surface.screen[self.x-1][self.y] = ' '
-            if surface.screen[self.x-1][self.y-1] == '!':
-                surface.screen[self.x-1][self.y-1] = ' '
-            self.x += 1
-            return 1
-    
-    
-    def retx(self):
-        return self.x
-    
-    def rety(self):
-        return self.y
-
-
-
-
-
 screen = Screen()
 board = Board()
 enemy =  Enemy()
@@ -206,8 +105,6 @@ def moveEnemy(screen):
     for e in enemyList:
         if e.obstruct(screen):
             e.switch()
-        if e.fall(screen):
-            continue
         e.move(screen)
         e.draw(screen)
         e.clear(screen)
@@ -218,20 +115,20 @@ iter =0
 dir =0
 enemyList.append(enemy)
 iter_count = 0
-speed = 30
+speed = 20
 coin_count = make_coins(screen,15,coin_count)
 while True:
     iter +=1 
     if iter % 5 == 0:
         createObstacle(board,screen)
-    if iter_count % 100 == 0:
+    if iter_count % 50 == 0:
         if speed != 5:
             speed -=5
         else:
             pass    
-    """ if iter % speed == 0:
-        make_enemy(screen) """
-    #coin_count = make_coins(screen,38,coin_count)     
+    if iter % speed == 0:
+        make_enemy(screen) 
+    coin_count = make_coins(screen,38,coin_count)     
     if iter %2 == 0:
         if player.retx() + 1 == 20:
             player = restart(screen,player)
@@ -285,4 +182,3 @@ if health == 0:
     print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+" Better luck next time"+Style.RESET_ALL)
 else :
      print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)
-print(enemyList[0].state)
