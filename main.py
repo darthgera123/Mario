@@ -9,7 +9,7 @@ from colorama import Fore, Back, Style
 import random
 import input
 from constants import terminal_ht, terminal_width
-from helpers import  make_coins,eat_coins,clear
+from helpers import  make_coins,eat_coins,clear,restart
 import constants
 import time
 from player import Player
@@ -20,9 +20,9 @@ colorama.init()
 
 class Enemy:
 
-    def __init__(self):
+    def __init__(self,y=45):
         self.x = 16
-        self.y = 28
+        self.y = 45
         self.state = 1
     
     def switch(self):
@@ -34,7 +34,11 @@ class Enemy:
             surface.screen[self.x-1][self.y] = '!'
             surface.screen[self.x][self.y-1] = 'O'
             surface.screen[self.x][self.y] = 'O'
-
+    def retx(self):
+        return self.x
+    
+    def rety(self):
+        return self.y
 
 
 
@@ -47,19 +51,20 @@ enemyList = []
 player = Player(16)
 health = 3
 count = 0
-
+enemy_kill = 0
+score = count*10 + (enemy_kill*30)
 def make_scene(screen):
     clear()
     clear()
     print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
-    print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10)+Style.RESET_ALL)
+    print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)
     screen.draw()
 
 def initScreen(screen,board): 
     player.draw(screen)
-    enemy.draw(screen)
     board.bridge(screen,35)
     board.draw(screen)
+    enemy.draw(screen)
     for i in range(0,10):
         board.clouds(screen,8,25,39)
 
@@ -84,13 +89,11 @@ def checkMove(screen,player):
         screen.screen[x-2][y] = ' '       
         return 4
 
-def restart(screen,player):
-    player.clean(screen)
-    y = player.rety()
-    del(player)
-    
-    player = Player(14,y-1)
-    return player
+def make_enemy(screen):
+    choice = random.randint(45,55)
+    e = Enemy(choice)
+    enemyList.append(e)
+    e.draw(screen)
 
 def killPlayer(screen,player):
     x = player.retx()
@@ -104,19 +107,46 @@ def killPlayer(screen,player):
 def killEnemy(screen,player):
     x = player.retx()
     y = player.rety()
-    
+    if player.fall(screen):
+        if screen.screen[x+1][y-1] == ' ' and screen.screen[x+1][y] == '!':
+            screen.screen[x+1][y] = ' '  
+            screen.screen[x+1][y+1] = ' '
+            screen.screen[x+2][y] = ' '
+            screen.screen[x+2][y+1] = ' '
+        if screen.screen[x+1][y-1] == '!' and screen.screen[x+1][y] == ' ':
+            screen.screen[x+1][y-1] = ' '  
+            screen.screen[x+1][y-2] = ' '
+            screen.screen[x+2][y-1] = ' '
+            screen.screen[x+2][y-2] = ' '
+        if screen.screen[x+1][y-1] == '!' and screen.screen[x+1][y] == '!':
+            screen.screen[x+1][y] = ' '  
+            screen.screen[x+1][y-1] = ' '
+            screen.screen[x+2][y] = ' '
+            screen.screen[x+2][y-1] = ' '
+        enemyList.pop()
+        return 1  
+    return 0
+
 
 coin_count = int(0)
 
 iter =0
 dir =0
-
+enemyList.append(enemy)
+iter_count = 0
+speed = 30
 coin_count = make_coins(screen,15,coin_count)
 while True:
     iter +=1 
     if iter % 5 == 0:
         createObstacle(board,screen)
-
+    if iter_count % 100 == 0:
+        if speed != 5:
+            speed -=5
+        else:
+            pass    
+    if iter % speed == 0:
+        make_enemy(screen)
     coin_count = make_coins(screen,38,coin_count)     
     if iter %2 == 0:
         if player.retx() + 1 == 20:
@@ -125,14 +155,18 @@ while True:
             if health == 0:
                 break
 
-        player.fall(screen)
+        if killEnemy(screen,player):
+            enemy_kill += 1
+        
     if eat_coins(screen,player):
         count += 1
         coin_count -= 1 
-    if player.fall(screen):
-        break
-    player.draw(screen,dir) 
+    
+    player.draw(screen,dir)
     make_scene(screen) 
+        
+    
+    
     
     if killPlayer(screen,player):
         player = restart(screen,player)
@@ -142,6 +176,7 @@ while True:
     try:
         keypress = input.get_input()
         if keypress == 'd':
+            iter_count +=1
             dir=0
             move = checkMove(screen,player)
             if move != 2 and move != 1:
@@ -157,12 +192,14 @@ while True:
                 count +=1
         elif keypress == 'w':
             player.jump(screen)
+            make_scene(screen) 
         elif keypress == 'q':
             break
         
     except:
         pass     
+
 if health == 0:
-    print(Fore.YELLOW+"   Score             "+str(count*10)+" Better luck next time"+Style.RESET_ALL)
+    print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+" Better luck next time"+Style.RESET_ALL)
 else :
-     print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10)+Style.RESET_ALL)
+     print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)

@@ -1,6 +1,6 @@
 class Player():
     
-    def __init__(self,x,y=24):
+    def __init__(self,x,y=26):
         self.x = x
         self.y = y
     
@@ -30,6 +30,7 @@ class Player():
                 surface.screen[self.x][self.y+1] = ' '
     
     def jump(self,surface):
+        #Need to work on it now
         if surface.screen[self.x-2][self.y-1] == ' ' and surface.screen[self.x-2][self.y] == ' ':
             surface.screen[self.x][self.y]= ' '
             surface.screen[self.x][self.y-1]= ' '
@@ -38,18 +39,20 @@ class Player():
             if surface.screen[self.x+1][self.y-1] == '?' or surface.screen[self.x+1][self.y] == '?':
                 self.x -=5
             if surface.screen[self.x+1][self.y-1] == '#' or surface.screen[self.x+1][self.y] == '#':
-                self.x -=3
+                self.x -=2
             if surface.screen[self.x+1][self.y-1] == ' ' or surface.screen[self.x+1][self.y] == ' ':
                 self.x -=1
             if surface.screen[self.x+1][self.y-1] == 'x' or surface.screen[self.x+1][self.y] == 'x':
                 self.x -=2
             if surface.screen[self.x+1][self.y-1] == '8' or surface.screen[self.x+1][self.y] == '8':
                 self.x -=4
+            if surface.screen[self.x+1][self.y-1] == '!' or surface.screen[self.x+1][self.y] == '!':
+                self.x -=5
         else:
             pass
 
     def fall(self,surface):
-        if surface.screen[self.x+1][self.y] == '!' and surface.screen[self.x+1][self.y-1] == '!':
+        if surface.screen[self.x+1][self.y] == '!' or surface.screen[self.x+1][self.y-1] == '!':
             return 1
         if surface.screen[self.x+1][self.y] == ' ' and surface.screen[self.x+1][self.y-1] == ' ':
             #The without moving case

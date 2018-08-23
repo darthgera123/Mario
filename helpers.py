@@ -1,10 +1,7 @@
 from os import name
 from os import system
-import colorama
 import random
-from colorama import Fore,Style
-
-colorama.init()
+from player import Player 
 
 def clear():
  
@@ -18,7 +15,12 @@ def clear():
 
 
 
-
+def restart(screen,player):
+    player.clean(screen)
+    y = player.rety()
+    del(player)
+    player = Player(14,y-2)
+    return player
     
 def make_coins(screen,y,coin_count):
     
