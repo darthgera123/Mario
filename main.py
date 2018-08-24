@@ -1,121 +1,115 @@
 from __future__ import print_function
 import os
-from sys import argv as rd
 from os import system
 from os import name
 import numpy as np
-import time
+import colorama
+from colorama import Fore, Back, Style
+import random
 
+#Inheriting all important functions to main
 import input
-from constants import terminal_ht, terminal_width
-import helpers
- 
-class Screen:
+from sound import play,kill
+from helpers import  make_coins,eat_coins,clear,restart, checkMissions
+from logic import make_enemy, checkMove, killEnemy, killPlayer, moveEnemy
+from constants import *
+from board_draw import initScreen,createObstacle
 
-    def __init__(self):
-        self.screen_height = terminal_ht
-        self.screen_width = terminal_width
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
-    
-    def clear(self):
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
-
-    def draw(self):
-        for base in self.screen:
-            for stone in base:
-                print(stone, end=" ")
-            print('')
+colorama.init(autoreset=True)
 
 
-class Board(Screen):
+main = play(theme)
 
-    def __init__(self):
-        Screen.__init__(self)
-        self._board_base_char = '#'
-        
-    def draw(self,surface):
-        surface.screen[-1:] = self._board_base_char
+# Basic function for printing the above info
+def make_scene(screen):
+    clear()
+    clear()
+    print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
+    print(Fore.GREEN+"  Health               "+str(health)+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100))
+    print(Fore.RED+"  Kills               "+str(enemy_kill)+Fore.YELLOW+"   Coins             "+str(count))
+    screen.draw()
 
-    
-            
-class Player(Screen):
+initScreen(screen,board) 
+enemyList.append(enemy)
+coin_count = make_coins(screen,15,coin_count)
 
-    def __init__(self):
-        Screen.__init__(self)
-        self.x = terminal_ht-2
-        self.top_y = 0
-        self.bottom_y = int(terminal_width/2)
-    
-    def draw(self,surface):
-        surface.screen[self.x][self.top_y] = 'x' 
-        surface.screen[self.x][self.top_y+1] = 'x' 
-        surface.screen[self.x][self.bottom_y] = 'x'
-        surface.screen[self.x][self.bottom_y+1] = 'x'
-
-    def move_left(self):
-        #this has to be worked out for the moment
-        if self.top_y == terminal_width or self.top_y == 0:
-            raise IndexError
-        else:
-            self.top_y = self.top_y - 1
-            self.bottom_y = self.bottom_y - 1
-
-    def move_right(self):
-        #this has to be worked out for the moment
-        if self.top_y >= terminal_width-1  or self.top_y == -1:
-            raise IndexError
-        else:
-            self.top_y = self.top_y + 1
-            self.bottom_y = self.bottom_y + 1       
-    
-    def jump(self):
-        self.x = self.x - 1
-    
-    def fall(self,surface):
-        if surface.screen[self.x+1][self.bottom_y] == '#':
-            pass
-        else:
-            self.x = self.x +1
-    
-    def notfly(self,surface):
-        if surface.screen[self.x+1][self.bottom_y] == '#':
-            return True
-
-    def topy(self):
-        return self.top_y
-
-
-screen = Screen()
-board = Board()
-
-player= Player()
-
-helpers.make_scene(screen,player,board)
-start = round(time.time())
 while True:
-    current = round(time.time())
-    if not player.notfly(screen):
-        if (current - start)%2 == 0:
-            player.fall(screen)
-            helpers.make_scene(screen,player,board)
-    try:
-        keypress = input.getchar()
-        if keypress == 'd':
-            player.move_right()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'a':
-            player.move_left()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'w':
-            player.jump()
-            helpers.make_scene(screen,player,board)
-        if keypress == 'q':
-            break
-    #This needs to be worked out
-    except IndexError:    
-        if player.topy() == terminal_width -2 :
-            player.move_left()
-        elif player.topy() <= 0:
-            player.move_right()
-        helpers.make_scene(screen,player,board)
+    iter +=1 
+
+    # Speed of obstacle creation 
+    if iter % 5 == 0:
+        createObstacle(board,screen)
     
+    #This will increase enemy creation speed
+    if iter_count % 50 == 0:
+        if speed != 5:
+            speed -=5
+        else:
+            pass    
+    if iter % speed == 0:
+        make_enemy(screen)
+
+    #Keeping Track of count so that it doesnt litter the board
+    coin_count = make_coins(screen,38,coin_count)     
+    moveEnemy(screen)
+    
+    #The fall is implemented wvery 2 iterations
+    if iter %2 == 0:
+        if player.retx() + 1 == 20:
+            player = restart(screen,player)
+            health -= 1
+            if health == 0:
+                break
+    #Enemy is killed if the player is supposeed to fall on him
+        if killEnemy(screen,player):
+            enemy_kill += 1
+        
+    if eat_coins(screen,player):
+        play(coin)
+        count += 1
+        coin_count -= 1 
+    
+    if killPlayer(screen,player):
+        player = restart(screen,player)
+        health -= 1 
+        if health == 0:
+                break
+    
+    player.draw(screen,dir)
+    mission_comp = checkMissions(mission_comp)
+    make_scene(screen)   
+    try:
+        keypress = input.get_input()
+        if keypress == 'd':
+            iter_count +=1
+            dir=0
+            move = checkMove(screen,player)
+            if move != 2 and move != 1:
+                screen.move_right()
+        elif keypress == 'a':
+            dir=1
+            move = checkMove(screen,player)
+            if move != 3 and move!= 1:
+                screen.move_left()
+        elif keypress == 'w':
+            play(jump)
+            player.jump(screen)
+            make_scene(screen) 
+        elif keypress == 'q':
+            break
+    except:
+        pass
+            
+
+if health == 0:
+    print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100)+" Better luck next time")
+else :
+    print(Fore.GREEN+"  Health               "+str(health)+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100))
+
+comp = 0
+for v in missions.values():
+    if v == True:
+        comp+=1
+print(Fore.BLUE+"  Missions Completed =               "+str(comp))
+#Killing the main sound
+kill(main)
