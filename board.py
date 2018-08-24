@@ -2,7 +2,7 @@ import random
 import numpy as np
 from background import Screen
 
-
+#All obstacles are added on this be it the bit ,bridge or any other obstacle
 class Board(Screen):
 
     def __init__(self):

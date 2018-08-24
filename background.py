@@ -1,9 +1,11 @@
-from constants import terminal_ht, terminal_width
 import numpy as np
 import colorama
 from colorama import Fore, Back, Style
-colorama.init()
+colorama.init(autoreset=True)
 
+terminal_ht = 20
+terminal_width= 60
+#The basic drawing board
 class Screen:
 
     def __init__(self):
@@ -11,9 +13,6 @@ class Screen:
         self.screen_width = terminal_width
         self.screen = np.full((self.screen_height,self.screen_width), ' ', dtype=np.unicode)
     
-    def clear(self):
-        self.screen = np.full((self.screen_height,self.screen_width), '.', dtype='str')
-
     def move_right(self):
         for base in self.screen:
             for i in range(0,len(base)):
@@ -30,6 +29,7 @@ class Screen:
                 else:
                     base[i] = base[i-1]
     
+    #Colors are added whenever they are printed
     def draw(self):
         for base in self.screen:
             for stone in base[20:45]:

@@ -1,146 +1,71 @@
 from __future__ import print_function
 import os
-from sys import argv as rd
 from os import system
 from os import name
 import numpy as np
 import colorama
 from colorama import Fore, Back, Style
 import random
-import input
-from constants import terminal_ht, terminal_width
-from helpers import  make_coins,eat_coins,clear,restart
-import constants
-import time
-from player import Player
-from enemy import Enemy
-from background import Screen
-from board import Board 
-colorama.init()
 
-screen = Screen()
-board = Board()
-enemy =  Enemy()
-enemyList = []
-player = Player(16)
-health = 3
-count = 0
-enemy_kill = 0
-score = count*10 + (enemy_kill*30)
+#Inheriting all important functions to main
+import input
+from sound import play,kill
+from helpers import  make_coins,eat_coins,clear,restart, checkMissions
+from logic import make_enemy, checkMove, killEnemy, killPlayer, moveEnemy
+from constants import *
+from board_draw import initScreen,createObstacle
+
+colorama.init(autoreset=True)
+
+
+main = play(theme)
+
+# Basic function for printing the above info
 def make_scene(screen):
     clear()
     clear()
     print(Fore.RED+"                         Mario               "+Style.RESET_ALL)
-    print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)
+    print(Fore.GREEN+"  Health               "+str(health)+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100))
+    print(Fore.RED+"  Kills               "+str(enemy_kill)+Fore.YELLOW+"   Coins             "+str(count))
     screen.draw()
 
-def initScreen(screen,board): 
-    
-    enemy.draw(screen)
-    board.pit(screen)
-    board.draw(screen)
-    player.draw(screen)
-    for i in range(0,10):
-        board.clouds(screen,8,25,39)
-
 initScreen(screen,board) 
-def createObstacle(board,screen):
-    board.clouds(screen,6,50,58)
-    options = [board.pipe(screen,54),board.pit(screen),board.bridge(screen,56)]
-    choice = random.randint(0,2)
-    return options[choice]
-
-
-def checkMove(screen,player):
-    x = player.retx()
-    y = player.rety()
-    if screen.screen[x][y+1] == '8' or screen.screen[x][y+1] == 'x' or screen.screen[x][y+1] == 'x' or screen.screen[x-1][y+1] == 'x' or screen.screen[x-1][y+1] == 'x'\
-            or screen.screen[x][y+1] == '#':
-        return 2
-    elif screen.screen[x][y-2] == '8' or screen.screen[x][y-2] == 'x' or screen.screen[x][y-2] == 'x' or screen.screen[x-1][y-2] == 'x' or screen.screen[x-1][y-2] == 'x' \
-            or screen.screen[x][y-2] == '8':
-        return 3
-    elif screen.screen[x-2][y] == '?' or screen.screen[x-2][y-1] == '?':
-        screen.screen[x-2][y] = ' '       
-        return 4
-
-def make_enemy(screen):
-    choice = random.randint(45,55)
-    e = Enemy(choice)
-    enemyList.append(e)
-    e.draw(screen)
-
-def killPlayer(screen,player):
-    x = player.retx()
-    y = player.rety()
-    if screen.screen[x][y+1] == 'O' or screen.screen[x][y+1] == '!':
-        return 1
-    if screen.screen[x][y-2] == 'O' or screen.screen[x][y-2] == '!':
-        return 1
-    return 0
-
-def killEnemy(screen,player):
-    x = player.retx()
-    y = player.rety()
-    if player.fall(screen) and len(enemyList)>0:
-        if screen.screen[x+1][y-1] == ' ' and screen.screen[x+1][y] == '!':
-            screen.screen[x+1][y] = ' '  
-            screen.screen[x+1][y+1] = ' '
-            screen.screen[x+2][y] = ' '
-            screen.screen[x+2][y+1] = ' '
-        if screen.screen[x+1][y-1] == '!' and screen.screen[x+1][y] == ' ':
-            screen.screen[x+1][y-1] = ' '  
-            screen.screen[x+1][y-2] = ' '
-            screen.screen[x+2][y-1] = ' '
-            screen.screen[x+2][y-2] = ' '
-        if screen.screen[x+1][y-1] == '!' and screen.screen[x+1][y] == '!':
-            screen.screen[x+1][y] = ' '  
-            screen.screen[x+1][y-1] = ' '
-            screen.screen[x+2][y] = ' '
-            screen.screen[x+2][y-1] = ' '
-        enemyList.pop()
-        return 1  
-    return 0
-
-def moveEnemy(screen):
-    for e in enemyList:
-        if e.obstruct(screen):
-            e.switch()
-        e.move(screen)
-        e.draw(screen)
-        e.clear(screen)
-
-coin_count = int(0)
-
-iter =0
-dir =0
 enemyList.append(enemy)
-iter_count = 0
-speed = 20
 coin_count = make_coins(screen,15,coin_count)
+
 while True:
     iter +=1 
+
+    # Speed of obstacle creation 
     if iter % 5 == 0:
         createObstacle(board,screen)
+    
+    #This will increase enemy creation speed
     if iter_count % 50 == 0:
         if speed != 5:
             speed -=5
         else:
             pass    
     if iter % speed == 0:
-        make_enemy(screen) 
+        make_enemy(screen)
+
+    #Keeping Track of count so that it doesnt litter the board
     coin_count = make_coins(screen,38,coin_count)     
+    moveEnemy(screen)
+    
+    #The fall is implemented wvery 2 iterations
     if iter %2 == 0:
         if player.retx() + 1 == 20:
             player = restart(screen,player)
             health -= 1
             if health == 0:
                 break
-
+    #Enemy is killed if the player is supposeed to fall on him
         if killEnemy(screen,player):
             enemy_kill += 1
         
     if eat_coins(screen,player):
+        play(coin)
         count += 1
         coin_count -= 1 
     
@@ -149,8 +74,9 @@ while True:
         health -= 1 
         if health == 0:
                 break
+    
     player.draw(screen,dir)
-    moveEnemy(screen)
+    mission_comp = checkMissions(mission_comp)
     make_scene(screen)   
     try:
         keypress = input.get_input()
@@ -160,26 +86,30 @@ while True:
             move = checkMove(screen,player)
             if move != 2 and move != 1:
                 screen.move_right()
-            if move == 4:
-                count +=1  
         elif keypress == 'a':
             dir=1
             move = checkMove(screen,player)
             if move != 3 and move!= 1:
                 screen.move_left()
-            if move == 4:
-                count +=1
         elif keypress == 'w':
+            play(jump)
             player.jump(screen)
             make_scene(screen) 
         elif keypress == 'q':
             break
-        
     except:
         pass
             
 
 if health == 0:
-    print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+" Better luck next time"+Style.RESET_ALL)
+    print(Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100)+" Better luck next time")
 else :
-     print(Fore.GREEN+"  Health               "+str(health)+Style.RESET_ALL+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30)+Style.RESET_ALL)
+    print(Fore.GREEN+"  Health               "+str(health)+Fore.YELLOW+"   Score             "+str(count*10+enemy_kill*30+mission_comp*100))
+
+comp = 0
+for v in missions.values():
+    if v == True:
+        comp+=1
+print(Fore.BLUE+"  Missions Completed =               "+str(comp))
+#Killing the main sound
+kill(main)

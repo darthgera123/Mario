@@ -1,4 +1,5 @@
-class Player():
+#Player class. It has all the main functions and some of the functions are inherited by enemy class
+class Player:
     
     def __init__(self,x=15,y=26):
         self.x = x
@@ -26,7 +27,7 @@ class Player():
         elif dir == 1:
             if surface.screen[self.x][self.y+2] == self._bottom_char:
                 surface.screen[self.x][self.y+2] = ' '
-            if surface.screen[self.x-1][self.y+2] == '/':
+            if surface.screen[self.x-1][self.y+2] == self._topr_char:
                 surface.screen[self.x-1][self.y+2] = ' '
             if surface.screen[self.x-1][self.y+1] == self._topr_char:
                 surface.screen[self.x-1][self.y+1] = ' '
